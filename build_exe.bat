@@ -46,17 +46,17 @@ python -m pip install -r requirements.txt pyinstaller >> "%LOG%" 2>&1
 if errorlevel 1 goto :fail
 
 echo [5/6] Build exe...
-python -m PyInstaller --noconfirm --clean --onefile --windowed --name MicroficheOverlapExtractor problem_detector_exe.py >> "%LOG%" 2>&1
+python -m PyInstaller --noconfirm --clean --onefile --windowed --name MicroficheProblemDetector problem_detector_exe.py >> "%LOG%" 2>&1
 if errorlevel 1 goto :fail
 
 echo [6/6] Verify output...
-if not exist "%cd%\dist\MicroficheOverlapExtractor.exe" (
+if not exist "%cd%\dist\MicroficheProblemDetector.exe" (
   echo dist exe missing >> "%LOG%"
   goto :fail
 )
 
 echo Build succeeded.
-echo EXE: %cd%\dist\MicroficheOverlapExtractor.exe
+echo EXE: %cd%\dist\MicroficheProblemDetector.exe
 echo Build succeeded >> "%LOG%"
 echo ==== Build end %date% %time% ==== >> "%LOG%"
 exit /b 0

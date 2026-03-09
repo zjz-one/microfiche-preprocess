@@ -38,12 +38,12 @@ repo-root/
 2. Open `Actions`.
 3. Open `Build Windows EXE`.
 4. Click `Run workflow`.
-5. Download artifact `MicroficheOverlapExtractor-windows`.
+5. Download artifact `MicroficheProblemDetector-windows`.
 
 Expected exe path inside the build output:
 
 ```text
-dist/MicroficheOverlapExtractor.exe
+dist/MicroficheProblemDetector.exe
 ```
 
 ## Build on Windows locally
@@ -57,7 +57,7 @@ build_exe.bat
 If the build succeeds, the exe will be here:
 
 ```text
-dist\MicroficheOverlapExtractor.exe
+dist\MicroficheProblemDetector.exe
 ```
 
 If it fails, inspect:
