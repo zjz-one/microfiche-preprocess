@@ -4,9 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "problem_detector_llm.py"
-      - "problem_detector_exe.py"
-      - "problem_detector_py.py"
+      - "microfiche_problem_detector.py"
       - "requirements.txt"
       - ".github/workflows/build-windows-exe.yml"
 
@@ -30,7 +28,7 @@ jobs:
 
       - name: Build exe
         run: |
-          pyinstaller --noconfirm --clean --onefile --windowed --name MicroficheProblemDetector problem_detector_exe.py
+          pyinstaller --noconfirm --clean --onefile --windowed --name MicroficheProblemDetector microfiche_problem_detector.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
