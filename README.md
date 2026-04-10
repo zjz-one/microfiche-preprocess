@@ -1,16 +1,36 @@
-# Microfiche Problem Detector (Windows Build Files)
+# Microfiche Preprocess Windows Pack
 
-Upload the contents of this folder as the root of a GitHub repository.
+Upload the contents of this `win/` folder as the root of a GitHub repository.
 
 Included:
-- `microfiche_problem_detector.py`
-- `problem_detector_exe.py`
+- `microfiche-preprocess.py`
+- `microfiche-preprocess-exe.py`
+- `microfiche-preprocess-cli.py`
 - `requirements.txt`
-- `build_exe.bat`
+- `build-exe.bat`
 - `.github/workflows/build-windows-exe.yml`
 
-GitHub Actions:
-1. Open the repo.
-2. Go to `Actions`.
-3. Run `Build Windows EXE`.
-4. Download artifact `MicroficheProblemDetector-windows`.
+## GitHub Actions
+
+1. Create a new GitHub repository.
+2. Upload every file and folder inside `win/` to the repo root.
+3. Open `Actions`.
+4. Run `Build Windows EXE`.
+5. Download artifact `Microfiche-Preprocess-windows`.
+
+## Local Windows Build
+
+Run:
+
+```bat
+build-exe.bat
+```
+
+Output:
+
+- `dist/Microfiche-Preprocess.exe`
+
+## Notes
+
+- The EXE is built from `microfiche-preprocess.py`.
+- The current Windows UI is the Python desktop UI, not the native macOS SwiftUI shell.
