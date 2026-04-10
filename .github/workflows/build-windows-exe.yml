@@ -4,8 +4,11 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "microfiche_problem_detector.py"
+      - "microfiche-preprocess.py"
+      - "microfiche-preprocess-exe.py"
+      - "microfiche-preprocess-cli.py"
       - "requirements.txt"
+      - "build-exe.bat"
       - ".github/workflows/build-windows-exe.yml"
 
 jobs:
@@ -28,11 +31,11 @@ jobs:
 
       - name: Build exe
         run: |
-          pyinstaller --noconfirm --clean --onefile --windowed --name MicroficheProblemDetector microfiche_problem_detector.py
+          pyinstaller --noconfirm --clean --onefile --windowed --name Microfiche-Preprocess microfiche-preprocess.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MicroficheProblemDetector-windows
-          path: dist/MicroficheProblemDetector.exe
+          name: Microfiche-Preprocess-windows
+          path: dist/Microfiche-Preprocess.exe
           if-no-files-found: error
