@@ -10,4 +10,4 @@ if errorlevel 1 exit /b 1
 python -m PyInstaller --noconfirm --clean microfiche-preprocess.spec
 if errorlevel 1 exit /b 1
 
-echo Build complete: dist\microfiche-preprocess\microfiche-preprocess.exe
+echo Build complete: dist\microfiche-preprocess.exe

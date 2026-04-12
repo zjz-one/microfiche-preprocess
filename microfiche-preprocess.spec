@@ -22,8 +22,10 @@ pyz = PYZ(a.pure)
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.datas,
     [],
-    exclude_binaries=True,
+    exclude_binaries=False,
     name="microfiche-preprocess",
     debug=False,
     bootloader_ignore_signals=False,
@@ -34,13 +36,4 @@ exe = EXE(
     argv_emulation=False,
     target_arch=None,
     icon="microfiche-preprocess.ico",
-)
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.datas,
-    strip=False,
-    upx=False,
-    upx_exclude=[],
-    name="microfiche-preprocess",
 )

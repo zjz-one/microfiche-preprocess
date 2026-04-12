@@ -17,7 +17,8 @@ Required root files after upload:
 
 Then run the `Build Windows EXE` workflow from GitHub Actions.
 
-The artifact will contain:
+The artifact will contain a single file:
 
 - `microfiche-preprocess.exe`
-- the bundled runtime files from `dist/microfiche-preprocess/`
+
+This is a one-file build, so it should not require a side-by-side `python311.dll` folder layout.
