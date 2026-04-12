@@ -29,9 +29,9 @@ jobs:
         run: build-exe.bat
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
-          name: microfiche-preprocess
-          path: dist/microfiche-preprocess/
+          name: microfiche-preprocess-windows
+          path: dist/microfiche-preprocess.exe
           if-no-files-found: error
           compression-level: 0
