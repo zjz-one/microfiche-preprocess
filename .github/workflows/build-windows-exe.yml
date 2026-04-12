@@ -2,17 +2,9 @@ name: Build Windows EXE
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "microfiche-preprocess.py"
-      - "microfiche-preprocess-ui.py"
-      - "microfiche-preprocess-exe.py"
-      - "microfiche-preprocess-cli.py"
-      - "microfiche-preprocess.ico"
-      - "fonts/**"
-      - "requirements.txt"
-      - "build-exe.bat"
-      - ".github/workflows/build-windows-exe.yml"
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -20,25 +12,26 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install -r requirements.txt pyinstaller
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt pyinstaller
 
-      - name: Build exe
-        run: |
-          pyinstaller --noconfirm --clean --onefile --windowed --name Microfiche-Preprocess --icon microfiche-preprocess.ico --collect-all PySide6 --collect-all shiboken6 --collect-all fitz --collect-all PIL --hidden-import tkinter --hidden-import tkinter.ttk --hidden-import tkinter.filedialog --hidden-import tkinter.messagebox --hidden-import tkinter.font --hidden-import tkinter.scrolledtext --add-data "microfiche-preprocess.py;." --add-data "microfiche-preprocess-cli.py;." --add-data "fonts;fonts" microfiche-preprocess-ui.py
+      - name: Build EXE
+        shell: cmd
+        run: build-exe.bat
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
-          name: Microfiche-Preprocess-windows
-          path: dist/Microfiche-Preprocess.exe
+          name: microfiche-preprocess
+          path: dist/microfiche-preprocess/
           if-no-files-found: error
+          compression-level: 0
