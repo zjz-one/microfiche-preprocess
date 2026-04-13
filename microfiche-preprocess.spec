@@ -26,10 +26,14 @@ hiddenimports = (
 
 
 a = Analysis(
-    ['microfiche-preprocess-gui.py'],
+    ["microfiche-preprocess-gui.py"],
     pathex=[],
     binaries=[],
-    datas=[('microfiche-preprocess.py', '.'), ('microfiche-preprocess-cli.py', '.'), ('pdf-playboard-gui.py', '.')],
+    datas=[
+        ("microfiche-preprocess.py", "."),
+        ("microfiche-preprocess-cli.py", "."),
+        ("pdf-playboard-gui.py", "."),
+    ],
     hiddenimports=sorted(hiddenimports),
     hookspath=[],
     hooksconfig={},
@@ -43,32 +47,21 @@ pyz = PYZ(a.pure)
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.datas,
     [],
-    exclude_binaries=True,
-    name='microfiche-preprocess',
+    name="microfiche-preprocess",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-)
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.datas,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    name='microfiche-preprocess',
-)
-app = BUNDLE(
-    coll,
-    name='microfiche-preprocess.app',
-    icon='microfiche-preprocess.icns',
-    bundle_identifier='microfiche-preprocess',
+    icon="microfiche-preprocess.ico",
 )
