@@ -51,6 +51,7 @@ TAB_MODE_BY_LABEL = {
     "OVERLAP": "overlap",
     "CROP": "crop",
     "DELICATE CROP": "delicate-crop",
+    "PLAYBOARD": "playboard",
     "CONVERT": "convert",
     "REPLACE": "replace",
 }
@@ -72,6 +73,7 @@ REPLACE_STEP_LABELS = {
 }
 
 _BACKEND_MODULE: Any | None = None
+_PLAYBOARD_MODULE: Any | None = None
 
 
 def resolve_script_dir() -> Path:
@@ -86,6 +88,10 @@ def resolve_cli_path() -> Path:
 
 def resolve_backend_path() -> Path:
     return resolve_script_dir() / "microfiche-preprocess.py"
+
+
+def resolve_playboard_path() -> Path:
+    return resolve_script_dir() / "pdf-playboard-gui.py"
 
 
 def resolve_python_path() -> Path:
@@ -115,6 +121,16 @@ def load_backend_module() -> Any:
     backend_path = resolve_backend_path()
     module = _load_module_from_path("microfiche_preprocess_backend", backend_path)
     _BACKEND_MODULE = module
+    return module
+
+
+def load_playboard_module() -> Any:
+    global _PLAYBOARD_MODULE
+    if _PLAYBOARD_MODULE is not None:
+        return _PLAYBOARD_MODULE
+    playboard_path = resolve_playboard_path()
+    module = _load_module_from_path("pdf_playboard_gui", playboard_path)
+    _PLAYBOARD_MODULE = module
     return module
 
 
@@ -650,6 +666,7 @@ class MainWindow(QMainWindow):
         self.delicate_preview_cache: dict[str, dict[str, Any]] = {}
         self.manual_original_image: QImage | None = None
         self.manual_source_path = ""
+        self.playboard_panel = load_playboard_module().PlayboardPanel()
 
         self.run_buttons: dict[str, QPushButton] = {}
         self.pause_buttons: dict[str, QPushButton] = {}
@@ -735,6 +752,18 @@ class MainWindow(QMainWindow):
         widget.setReadOnly(True)
         return widget
 
+    def _tab_layout(self, widget: QWidget, *, spacing: int = 8) -> QVBoxLayout:
+        layout = QVBoxLayout(widget)
+        layout.setSpacing(spacing)
+        return layout
+
+    def _add_labeled_widget(self, layout: QVBoxLayout, label_text: str, widget: QWidget, *, stretch: int = 0) -> None:
+        layout.addWidget(QLabel(label_text))
+        layout.addWidget(widget, stretch)
+
+    def _add_directory_section(self, layout: QVBoxLayout, label_text: str, line_edit: QLineEdit, title: str) -> None:
+        self._add_labeled_widget(layout, label_text, self._directory_row(line_edit, title))
+
     def _build_ui(self) -> None:
         central = QWidget()
         self.setCentralWidget(central)
@@ -746,6 +775,7 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self._build_overlap_tab(), "OVERLAP")
         self.tabs.addTab(self._build_crop_tab(), "CROP")
         self.tabs.addTab(self._build_delicate_tab(), "DELICATE CROP")
+        self.tabs.addTab(self._build_playboard_tab(), "PLAYBOARD")
         self.tabs.addTab(self._build_convert_tab(), "CONVERT")
         self.tabs.addTab(self._build_replace_tab(), "REPLACE")
 
@@ -834,12 +864,9 @@ class MainWindow(QMainWindow):
 
     def _build_overlap_tab(self) -> QWidget:
         widget = QWidget()
-        layout = QVBoxLayout(widget)
-        layout.setSpacing(8)
-        layout.addWidget(QLabel("Source"))
-        layout.addWidget(self._directory_row(self.overlap_source_input, "Select Overlap Source Directory"))
-        layout.addWidget(QLabel("Multiplier"))
-        layout.addWidget(self.overlap_multiplier_input)
+        layout = self._tab_layout(widget)
+        self._add_directory_section(layout, "Source", self.overlap_source_input, "Select Overlap Source Directory")
+        self._add_labeled_widget(layout, "Multiplier", self.overlap_multiplier_input)
         layout.addWidget(self._action_row("overlap"))
         layout.addWidget(self.estimate_label)
         self._add_progress_row(layout, self.overlap_progress_bar, self.overlap_progress_label)
@@ -848,12 +875,9 @@ class MainWindow(QMainWindow):
 
     def _build_crop_tab(self) -> QWidget:
         widget = QWidget()
-        layout = QVBoxLayout(widget)
-        layout.setSpacing(8)
-        layout.addWidget(QLabel("Source"))
-        layout.addWidget(self._directory_row(self.crop_source_input, "Select Crop Source Directory"))
-        layout.addWidget(QLabel("Ratio"))
-        layout.addWidget(self.crop_ratio_input)
+        layout = self._tab_layout(widget)
+        self._add_directory_section(layout, "Source", self.crop_source_input, "Select Crop Source Directory")
+        self._add_labeled_widget(layout, "Ratio", self.crop_ratio_input)
         layout.addWidget(self._action_row("crop"))
         self._add_progress_row(layout, self.crop_progress_bar, self.crop_progress_label)
         layout.addWidget(self.crop_log, 1)
@@ -902,10 +926,8 @@ class MainWindow(QMainWindow):
 
     def _build_convert_tab(self) -> QWidget:
         widget = QWidget()
-        layout = QVBoxLayout(widget)
-        layout.setSpacing(8)
-        layout.addWidget(QLabel("Source"))
-        layout.addWidget(self._directory_row(self.convert_source_input, "Select Convert Source Directory"))
+        layout = self._tab_layout(widget)
+        self._add_directory_section(layout, "Source", self.convert_source_input, "Select Convert Source Directory")
         mode_row = QHBoxLayout()
         mode_row.setContentsMargins(0, 0, 0, 0)
         mode_row.setSpacing(12)
@@ -919,14 +941,14 @@ class MainWindow(QMainWindow):
         layout.addStretch(1)
         return widget
 
+    def _build_playboard_tab(self) -> QWidget:
+        return self.playboard_panel
+
     def _build_replace_tab(self) -> QWidget:
         widget = QWidget()
-        layout = QVBoxLayout(widget)
-        layout.setSpacing(8)
-        layout.addWidget(QLabel("Source"))
-        layout.addWidget(self._directory_row(self.replace_cropped_input, "Select Cropped Directory"))
-        layout.addWidget(QLabel("Destination"))
-        layout.addWidget(self._directory_row(self.replace_target_input, "Select Replacement Directory"))
+        layout = self._tab_layout(widget)
+        self._add_directory_section(layout, "Source", self.replace_cropped_input, "Select Cropped Directory")
+        self._add_directory_section(layout, "Destination", self.replace_target_input, "Select Replacement Directory")
         option_row = QHBoxLayout()
         option_row.setContentsMargins(0, 0, 0, 0)
         option_row.setSpacing(12)
@@ -1013,6 +1035,12 @@ class MainWindow(QMainWindow):
             self.replace_onedrive_assisted.setEnabled(True)
             self.replace_auto_freeup.setEnabled(self.replace_onedrive_assisted.isChecked())
 
+    def _show_error(self, message: str) -> None:
+        QMessageBox.critical(self, APP_NAME, message)
+
+    def _show_warning(self, message: str) -> None:
+        QMessageBox.warning(self, APP_NAME, message)
+
     def set_pause_button_labels(self, text: str) -> None:
         for button in self.pause_buttons.values():
             button.setText(text)
@@ -1072,7 +1100,7 @@ class MainWindow(QMainWindow):
             self.manual_original_image = None
             self.manual_source_path = ""
             self.manual_preview.clear_preview()
-            QMessageBox.critical(self, APP_NAME, str(exc))
+            self._show_error(str(exc))
             return
         self.manual_source_path = str(preview_bundle["pdf_path"])
         self.delicate_preview_cache[str(preview_bundle["pdf_path"])] = preview_bundle
@@ -1156,6 +1184,9 @@ class MainWindow(QMainWindow):
         arguments.extend(["--right-indent-pct", str(indent_pct)])
         return arguments
 
+    def _build_playboard_cli_arguments(self) -> list[str]:
+        raise ValueError("Playboard does not use run/pause/stop.")
+
     def _build_convert_cli_arguments(self) -> list[str]:
         source = self._required_text(self.convert_source_input, "Select a convert source directory.")
         convert_mode = "pdf-to-jpeg" if self.convert_pdf_to_jpeg.isChecked() else "jpeg-to-pdf"
@@ -1183,6 +1214,7 @@ class MainWindow(QMainWindow):
             "overlap": self._build_overlap_cli_arguments,
             "crop": self._build_crop_cli_arguments,
             "delicate-crop": self._build_delicate_cli_arguments,
+            "playboard": self._build_playboard_cli_arguments,
             "convert": self._build_convert_cli_arguments,
             "replace": self._build_replace_cli_arguments,
         }
@@ -1190,13 +1222,13 @@ class MainWindow(QMainWindow):
 
     def start_process(self, cli_arguments: list[str]) -> None:
         if self.process and self.process.state() != QProcess.NotRunning:
-            QMessageBox.warning(self, APP_NAME, "A task is already running.")
+            self._show_warning("A task is already running.")
             return
         if not self.cli_path.exists():
-            QMessageBox.critical(self, APP_NAME, f"Missing CLI: {self.cli_path}")
+            self._show_error(f"Missing CLI: {self.cli_path}")
             return
         if not cli_arguments:
-            QMessageBox.critical(self, APP_NAME, "No operation specified.")
+            self._show_error("No operation specified.")
             return
 
         self.active_operation = str(cli_arguments[0])
@@ -1222,22 +1254,22 @@ class MainWindow(QMainWindow):
         try:
             arguments = self.build_cli_arguments()
         except Exception as exc:
-            QMessageBox.critical(self, APP_NAME, str(exc))
+            self._show_error(str(exc))
             return
         self.start_process(arguments)
 
     def run_manual_crop(self) -> None:
         source_pdf = self.manual_source_path.strip()
         if not source_pdf:
-            QMessageBox.critical(self, APP_NAME, "Drop a PDF into the manual crop area first.")
+            self._show_error("Drop a PDF into the manual crop area first.")
             return
         if self.manual_original_image is None or self.manual_original_image.isNull():
-            QMessageBox.critical(self, APP_NAME, "Load a PDF preview before saving.")
+            self._show_error("Load a PDF preview before saving.")
             return
         try:
             rotation = self._manual_rotation_value() or 0.0
         except Exception as exc:
-            QMessageBox.critical(self, APP_NAME, str(exc))
+            self._show_error(str(exc))
             return
 
         backend = load_backend_module()
@@ -1308,6 +1340,30 @@ class MainWindow(QMainWindow):
             if result_csv_path:
                 self.append_log(f"Result CSV: {result_csv_path}", group="replace")
 
+    def _handle_log_event(self, payload: dict[str, Any], group: str) -> None:
+        self.append_log(str(payload.get("message", "")), group=group)
+
+    def _handle_progress_event(self, payload: dict[str, Any], group: str) -> None:
+        done = int(payload.get("done", 0))
+        total = max(int(payload.get("total", 0)), 0)
+        percent = 0 if total <= 0 else int(round((done / total) * 100.0))
+        self._set_group_progress(group, max(0, min(percent, 100)))
+
+    def _handle_estimate_event(self, payload: dict[str, Any], _group: str) -> None:
+        self.estimate_label.setText(str(payload.get("text", "Estimated width: -")))
+
+    def _handle_suggested_cropped_dir_event(self, payload: dict[str, Any], _group: str) -> None:
+        self.replace_cropped_input.setText(str(payload.get("path", "")))
+
+    def _handle_replace_step_event(self, payload: dict[str, Any], _group: str) -> None:
+        self.set_replace_step_state(str(payload.get("step", "")), str(payload.get("state", "pending")))
+
+    def _handle_error_event(self, payload: dict[str, Any], group: str) -> None:
+        message = str(payload.get("message", "Unknown error"))
+        self.append_log(message, group=group)
+        if self.log_groups.get(group) is None:
+            self._show_error(message)
+
     def handle_process_line(self, line: str) -> None:
         try:
             payload = json.loads(line)
@@ -1317,29 +1373,17 @@ class MainWindow(QMainWindow):
 
         group = self.current_output_group()
         event = payload.get("event")
-        if event == "log":
-            self.append_log(str(payload.get("message", "")), group=group)
-            return
-        if event == "progress":
-            done = int(payload.get("done", 0))
-            total = max(int(payload.get("total", 0)), 0)
-            percent = 0 if total <= 0 else int(round((done / total) * 100.0))
-            self._set_group_progress(group, max(0, min(percent, 100)))
-            return
-        if event == "estimate":
-            self.estimate_label.setText(str(payload.get("text", "Estimated width: -")))
-            return
-        if event == "suggested-cropped-dir":
-            self.replace_cropped_input.setText(str(payload.get("path", "")))
-            return
-        if event == "replace-step":
-            self.set_replace_step_state(str(payload.get("step", "")), str(payload.get("state", "pending")))
-            return
-        if event == "error":
-            message = str(payload.get("message", "Unknown error"))
-            self.append_log(message, group=group)
-            if self.log_groups.get(group) is None:
-                QMessageBox.critical(self, APP_NAME, message)
+        handlers = {
+            "log": self._handle_log_event,
+            "progress": self._handle_progress_event,
+            "estimate": self._handle_estimate_event,
+            "suggested-cropped-dir": self._handle_suggested_cropped_dir_event,
+            "replace-step": self._handle_replace_step_event,
+            "error": self._handle_error_event,
+        }
+        handler = handlers.get(str(event))
+        if handler is not None:
+            handler(payload, group)
             return
         if event == "result":
             self._handle_result_payload(payload)
